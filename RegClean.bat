@@ -624,6 +624,4 @@ cmd /c "reg delete "hklm\software\microsoft\windowsruntime\activatableclassid\wi
 
 cmd /c "reg delete "hklm\software\microsoft\windowsruntime\activatableclassid\windows.applicationmodel.socialinfo.provider.socialinfoprovidermanager" /f" >Nul 2>&1
 
-Cls
 
-Exit /B
