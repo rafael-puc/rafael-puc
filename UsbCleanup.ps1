@@ -62,12 +62,12 @@ if ($FilterByFriendlyName -ne $null) {
 }
 
 if ($listDevicesOnly -eq $true) {
-    write-host "List devices without removal: $listDevicesOnly"
+    write-host "List: $listDevicesOnly"
     $removeDevices = $false
 }
 
 if ($listGhostDevicesOnly -eq $true) {
-    write-host "List ghost devices without removal: $listGhostDevicesOnly"
+    write-host "List Ghost Devices: $listGhostDevicesOnly"
     $removeDevices = $false
 }
 
@@ -311,7 +311,7 @@ Add-Type -TypeDefinition $setupapi
             if ($FilterByClass -ne $null) {
                 foreach ($ClassFilter in $FilterByClass) {
                     if ($ClassFilter -eq $Class) {
-                        Write-verbose "Class filter match $ClassFilter, skipping"
+                        Write-verbose "Skipping"
                         $matchFilter = $true
                     }
                 }
@@ -319,14 +319,14 @@ Add-Type -TypeDefinition $setupapi
             if ($FilterByFriendlyName -ne $null) {
                 foreach ($FriendlyNameFilter in $FilterByFriendlyName) {
                     if ($FriendlyName -like '*'+$FriendlyNameFilter+'*') {
-                        Write-verbose "FriendlyName filter match $FriendlyName, skipping"
+                        Write-verbose "Skipping"
                         $matchFilter = $true
                     }
                 }
             }
             if ($InstallState -eq $False) {
                 if ($matchFilter -eq $false) {
-                    Write-Host "Attempting to removing device $FriendlyName" -ForegroundColor Yellow
+                    Write-Host "Removing Device $FriendlyName" -ForegroundColor Yellow
                     $removeObj = New-Object System.Object
                     $removeObj | Add-Member -type NoteProperty -name FriendlyName -value $FriendlyName
                     $removeObj | Add-Member -type NoteProperty -name HWID -value $HWID
@@ -334,12 +334,12 @@ Add-Type -TypeDefinition $setupapi
                     $removeObj | Add-Member -type NoteProperty -name Class -value $Class
                     $removeArray += @($removeObj)
                     if([Win32.SetupApi]::SetupDiRemoveDevice($devs, [ref]$devInfo)){
-                        Write-Host "Removed device $FriendlyName"  -ForegroundColor Green
+                        Write-Host "Removed. $FriendlyName"  -ForegroundColor Green
                     } else {
-                        Write-Host "Failed to remove device $FriendlyName" -ForegroundColor Red
+                        Write-Host "Failed Removal." -ForegroundColor Red
                     }
                 } else {
-                    write-host "Filter matched. Skipping $FriendlyName" -ForegroundColor Yellow
+                    write-host "Skipping." -ForegroundColor Yellow
                 }
             }
         }
