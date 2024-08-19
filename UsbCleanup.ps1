@@ -1,11 +1,9 @@
 <#
-.SYNOPSIS
-   Removes ghost devices from your system
 
 .DESCRIPTION
-    This script will remove ghost devices from your system.  These are devices that are present but have a "InstallState" as false.  These devices are typically shown as 'faded'
-    in Device Manager, when you select "Show hidden and devices" from the view menu.  This script has been tested on Windows 2008 R2 SP2 with PowerShell 3.0, 5.1 and Server 2012R2
-    with Powershell 4.0.  There is no warranty with this script.  Please use cautiously as removing devices is a destructive process without an undo.
+This script will remove ghost devices from your system.  These are devices that are present but have a "InstallState" as false. These devices are typically shown as 'faded'
+in Device Manager, when you select "Show hidden and devices" from the view menu.  This script has been tested on Windows 2008 R2 SP2 with PowerShell 3.0, 5.1 and Server 2012R2
+with Powershell 4.0.  There is no warranty with this script.  Please use cautiously as removing devices is a destructive process without an undo.
 
 .PARAMETER filterByFriendlyName 
 This parameter will exclude devices that match the partial name provided. This paramater needs to be specified in an array format for all the friendly names you want to be excluded from removal.
@@ -18,25 +16,6 @@ This is an exact string match so "Disk" will not match "DiskDrive".
 .PARAMETER listDevicesOnly 
 listDevicesOnly will output a table of all devices found in this system.
 
-.PARAMETER listGhostDevicesOnly 
-listGhostDevicesOnly will output a table of all 'ghost' devices found in this system.
-
-.EXAMPLE
-Lists all devices
-. "removeGhosts.ps1" -listDevicesOnly
-
-.EXAMPLE
-Save the list of devices as an object
-$Devices = . "removeGhosts.ps1" -listDevicesOnly
-
-.EXAMPLE
-Lists all 'ghost' devices
-. "removeGhosts.ps1" -listGhostDevicesOnly
-
-.EXAMPLE
-Save the list of 'ghost' devices as an object
-$ghostDevices = . "removeGhosts.ps1" -listGhostDevicesOnly
-
 .EXAMPLE
 Remove all ghost devices EXCEPT any devices that have "Intel" or "Citrix" in their friendly name
 . "removeGhosts.ps1" -filterByFriendlyName @("Intel","Citrix")
@@ -45,17 +24,7 @@ Remove all ghost devices EXCEPT any devices that have "Intel" or "Citrix" in the
 Remove all ghost devices EXCEPT any devices that are apart of the classes "LegacyDriver" or "Processor"
 . "removeGhosts.ps1" -filterByClass @("LegacyDriver","Processor")
 
-.EXAMPLE 
-Remove all ghost devices EXCEPT for devices with a friendly name of "Intel" or "Citrix" or with a class of "LegacyDriver" or "Processor"
-. "removeGhosts.ps1" -filterByClass @("LegacyDriver","Processor") -filterByFriendlyName @("Intel","Citrix")
-
-.NOTES
-Permission level has not been tested.  It is assumed you will need to have sufficient rights to uninstall devices from device manager for this script to run properly.
 #>
-
-# Code found here:
-# https://theorypc.ca/2017/06/28/remove-ghost-devices-natively-with-powershell/
-# apparently (c) 2018 Trentent Tye.
 
 param(
   [array]$FilterByClass,
@@ -289,7 +258,6 @@ Add-Type -TypeDefinition $setupapi
 
         #InstallState returns true or false as an output, not text
         $InstallState = [Win32.SetupApi]::SetupDiGetDeviceRegistryProperty($devs, [ref]$devInfo,[Win32.SetupDiGetDeviceRegistryPropertyEnum]::SPDRP_INSTALL_STATE, [ref]$propTypeIS, $propBufferIS, $propBufferSizeIS, [ref]$propBufferSizeIS)
-
         # Read HWID property into Buffer
         if(![Win32.SetupApi]::SetupDiGetDeviceRegistryProperty($devs, [ref]$devInfo,[Win32.SetupDiGetDeviceRegistryPropertyEnum]::SPDRP_HARDWAREID, [ref]$propTypeHWID, $propBufferHWID, $propBufferSizeHWID, [ref]$propBufferSizeHWID)){
             #Ignore if Error
@@ -308,24 +276,16 @@ Add-Type -TypeDefinition $setupapi
         $obj | Add-Member -type NoteProperty -name InstallState -value $InstallState
         $obj | Add-Member -type NoteProperty -name Class -value $Class
         if ($array.count -le 0) {
-            #for some reason the script will blow by the first few entries without displaying the output
-            #this brief pause seems to let the objects get created/displayed so that they are in order.
             sleep 1
         }
         $array += @($obj)
 
-        <#
-        We need to execute the filtering at this point because we are in the current device context
-        where we can execute an action (eg, removal).
-        InstallState : False == ghosted device
-        #>
+
         $matchFilter = $false
         if ($removeDevices -eq $true) {
-            #we want to remove devices so lets check the filters...
             if ($FilterByClass -ne $null) {
                 foreach ($ClassFilter in $FilterByClass) {
                     if ($ClassFilter -eq $Class) {
-                        Write-verbose "Class filter match $ClassFilter, skipping"
                         $matchFilter = $true
                     }
                 }
@@ -333,7 +293,6 @@ Add-Type -TypeDefinition $setupapi
             if ($FilterByFriendlyName -ne $null) {
                 foreach ($FriendlyNameFilter in $FilterByFriendlyName) {
                     if ($FriendlyName -like '*'+$FriendlyNameFilter+'*') {
-                        Write-verbose "FriendlyName filter match $FriendlyName, skipping"
                         $matchFilter = $true
                     }
                 }
@@ -360,29 +319,5 @@ Add-Type -TypeDefinition $setupapi
         $devcount++
     }
     
-    #output objects so you can take the output from the script
-    if ($listDevicesOnly) {
-        $allDevices = $array | sort -Property FriendlyName | ft
-        $allDevices
-        write-host "Total devices found       : $($array.count)"
-        $ghostDevices = ($array | where {$_.InstallState -eq $false} | sort -Property FriendlyName)
-        write-host "Total ghost devices found : $($ghostDevices.count)"
-        return $allDevices | out-null
-    }
-
-    if ($listGhostDevicesOnly) {
-        $ghostDevices = ($array | where {$_.InstallState -eq $false} | sort -Property FriendlyName)
-        $ghostDevices | ft
-        write-host "Total ghost devices found : $($ghostDevices.count)"
-        return $ghostDevices | out-null
-    }
-
-    if ($removeDevices -eq $true) {
-        write-host "Removed devices:"
-        $removeArray  | sort -Property FriendlyName | ft
-        write-host "Total removed devices     : $($removeArray.count)"
-        return $removeArray | out-null
-    }
-	
 
 
