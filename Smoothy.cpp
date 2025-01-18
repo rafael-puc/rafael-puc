@@ -38,7 +38,7 @@ while (Process32Next(hSnapshot, &pe32));} CloseHandle(hSnapshot);}} FreeLibrary(
 // FUNCTION: DISABLE FLIP 3D
 void Flip3DPolicy() {const std::vector<std::wstring> targetProcesses = {L"League of Legends.exe",L"Dwm.exe",L"FortniteClient-Win64-Shipping.exe",L"Valorant-Win64-Shipping.exe"};
 while (true){HANDLE hSnapshot=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);if (hSnapshot==INVALID_HANDLE_VALUE){continue;} PROCESSENTRY32 pe32; pe32.dwSize=sizeof(PROCESSENTRY32);if (Process32First(hSnapshot, &pe32)){do {std::wstring exeName = ConvertToWideString(pe32.szExeFile);
-if (std::find(targetProcesses.begin(), targetProcesses.end(), exeName) != targetProcesses.end()) {HWND hwnd = GetTopWindow(NULL); while (hwnd) {DWORD windowProcessId = 0; GetWindowThreadProcessId(hwnd, &windowProcessId);
+if (std::find(targetProcesses.begin(), targetProcesses.end(), exeName) != targetProcesses.end()) {HWND hwnd = GetTopWindow(NULL);while (hwnd) {DWORD windowProcessId = 0; GetWindowThreadProcessId(hwnd, &windowProcessId);
 if (windowProcessId == pe32.th32ProcessID) {DWORD dwmPolicy = DWMFLIP3D_EXCLUDEABOVE; DwmSetWindowAttribute(hwnd, DWMWA_FLIP3D_POLICY, &dwmPolicy, sizeof(dwmPolicy)); break;} hwnd = GetNextWindow(hwnd, GW_HWNDNEXT);}}}
 while (Process32Next(hSnapshot, &pe32));} CloseHandle(hSnapshot); std::this_thread::sleep_for(std::chrono::seconds(50));}}
 
