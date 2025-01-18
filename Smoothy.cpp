@@ -25,7 +25,7 @@ std::wstring ConvertToWideString(const char* str){int len=MultiByteToWideChar(CP
 void SetResolution(ULONG desiredResolution){ULONG currentRes=0;NTSTATUS status=NtSetTimerResolution(desiredResolution, TRUE, &currentRes);
 if (status != 0){if (!gNoConsole) std::cerr << "Unavailable..." << status << std::endl;return;} if (!gNoConsole) std::cout << "\nMMCSS Attatched to DWM. \nTimer Resolution ON.\n\n" << std::endl;
 while (true){auto start=std::chrono::high_resolution_clock::now();Sleep(1);auto end=std::chrono::high_resolution_clock::now();double elapsed=std::chrono::duration<double, std::milli>(end - start).count();double delta=elapsed - 1.0;
-if (!gNoConsole) std::cout << "Timer Aplicado: " << std::fixed << std::setprecision(4) << desiredResolution / 10000.0 << "ms / Timer: " << elapsed << " ms / Delta: " << delta << "ms" << std::endl;std::this_thread::sleep_for(std::chrono::seconds(1));}}
+if (!gNoConsole) std::cout << "Timer Applied: " << std::fixed << std::setprecision(4) << desiredResolution / 10000.0 << "ms / Timer: " << elapsed << " ms / Delta: " << delta << "ms" << std::endl;std::this_thread::sleep_for(std::chrono::seconds(1));}}
 
 // FUNCTION: DWM_TRANSITIONS_OFF/DWM_COMPOSITION_OFF/DPISCALE_OFF/MMCSS_ENGAGE
 void OptimizeDWM() {DwmEnableComposition(DWM_EC_DISABLECOMPOSITION); HWND hwnd = GetDesktopWindow();if (hwnd) {BOOL disableTransitions = TRUE; DwmSetWindowAttribute(hwnd, DWMWA_TRANSITIONS_FORCEDISABLED, &disableTransitions, sizeof(disableTransitions));} DwmEnableMMCSS(TRUE); HMODULE hUser32 = LoadLibraryW(L"user32.dll");
